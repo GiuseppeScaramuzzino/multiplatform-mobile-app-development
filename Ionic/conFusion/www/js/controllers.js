@@ -179,13 +179,7 @@ menuFactory.getDishes().update({id:$scope.dish.id},$scope.dish);
 
 .controller('AboutController', ['$scope', 'corporateFactory','baseURL', function($scope, corporateFactory, baseURL) {
 
-  $scope.leaders = corporateFactory.query(
-    function(response) {
-      $scope.corporateLeadership = response;
-    },
-    function(response) {
-        $scope.message = "Error: "+response.status + " " + response.statusText;
-    });
+  $scope.leaders = corporateFactory.query();
   $scope.baseURL =baseURL;
 
 }]);
