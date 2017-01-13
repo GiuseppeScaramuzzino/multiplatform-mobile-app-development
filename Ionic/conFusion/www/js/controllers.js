@@ -1,7 +1,6 @@
 angular.module('conFusion.controllers', [])
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout) {
-
+.controller('AppCtrl', function ($scope, $ionicModal, $timeout, $localStorage) {
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
   // To listen for when this page is active (for example, to refresh data),
@@ -10,32 +9,33 @@ angular.module('conFusion.controllers', [])
   //});
 
   // Form data for the login modal
-  $scope.loginData = {};
+  $scope.loginData = $localStorage.getObject('userinfo', '{}');
 
   // Create the login modal that we will use later
   $ionicModal.fromTemplateUrl('templates/login.html', {
     scope: $scope
-  }).then(function(modal) {
+  }).then(function (modal) {
     $scope.modal = modal;
   });
 
   // Triggered in the login modal to close it
-  $scope.closeLogin = function() {
+  $scope.closeLogin = function () {
     $scope.modal.hide();
   };
 
   // Open the login modal
-  $scope.login = function() {
+  $scope.login = function () {
     $scope.modal.show();
   };
 
   // Perform the login action when the user submits the login form
-  $scope.doLogin = function() {
+  $scope.doLogin = function () {
     console.log('Doing login', $scope.loginData);
+    $localStorage.storeObject('userinfo', $scope.loginData);
 
     // Simulate a login delay. Remove this and replace with your login
     // code if using a login system
-    $timeout(function() {
+    $timeout(function () {
       $scope.closeLogin();
     }, 1000);
   };
@@ -45,27 +45,27 @@ angular.module('conFusion.controllers', [])
   // Create the reserve modal that we will use later
   $ionicModal.fromTemplateUrl('templates/reserve.html', {
     scope: $scope
-  }).then(function(modal) {
+  }).then(function (modal) {
     $scope.reserveform = modal;
   });
 
   // Triggered in the reserve modal to close it
-  $scope.closeReserve = function() {
+  $scope.closeReserve = function () {
     $scope.reserveform.hide();
   };
 
   // Open the reserve modal
-  $scope.reserve = function() {
+  $scope.reserve = function () {
     $scope.reserveform.show();
   };
 
   // Perform the reserve action when the user submits the reserve form
-  $scope.doReserve = function() {
+  $scope.doReserve = function () {
     console.log('Doing reservation', $scope.reservation);
 
     // Simulate a reservation delay. Remove this and replace with your reservation
     // code if using a server system
-    $timeout(function() {
+    $timeout(function () {
       $scope.closeReserve();
     }, 1000);
   };
@@ -81,149 +81,187 @@ angular.module('conFusion.controllers', [])
   $scope.message = "Loading ...";
 
   menuFactory.query(
-      function(response) {
-          $scope.dishes = response;
-          $scope.showMenu = true;
-      },
-      function(response) {
-          $scope.message = "Error: "+response.status + " " + response.statusText;
-      });
+    function (response) {
+      $scope.dishes = response;
+      $scope.showMenu = true;
+    },
+    function (response) {
+      $scope.message = "Error: " + response.status + " " + response.statusText;
+    });
 
 
-  $scope.select = function(setTab) {
-      $scope.tab = setTab;
+  $scope.select = function (setTab) {
+    $scope.tab = setTab;
 
-      if (setTab === 2) {
-          $scope.filtText = "appetizer";
-      }
-      else if (setTab === 3) {
-          $scope.filtText = "mains";
-      }
-      else if (setTab === 4) {
-          $scope.filtText = "dessert";
-      }
-      else {
-          $scope.filtText = "";
-      }
+    if (setTab === 2) {
+      $scope.filtText = "appetizer";
+    } else if (setTab === 3) {
+      $scope.filtText = "mains";
+    } else if (setTab === 4) {
+      $scope.filtText = "dessert";
+    } else {
+      $scope.filtText = "";
+    }
   };
 
   $scope.addFavorite = function (index) {
-     console.log("index is " + index);
-     favoriteFactory.addToFavorites(index);
-     $ionicListDelegate.closeOptionButtons();
-   }
+    console.log("index is " + index);
+    favoriteFactory.addToFavorites(index);
+    $ionicListDelegate.closeOptionButtons();
+  }
 
   $scope.isSelected = function (checkTab) {
-      return ($scope.tab === checkTab);
+    return ($scope.tab === checkTab);
   };
 
-  $scope.toggleDetails = function() {
-      $scope.showDetails = !$scope.showDetails;
+  $scope.toggleDetails = function () {
+    $scope.showDetails = !$scope.showDetails;
   };
 }])
 
-.controller('ContactController', ['$scope', function($scope) {
+.controller('ContactController', ['$scope', function ($scope) {
 
-  $scope.feedback = {mychannel:"", firstName:"", lastName:"", agree:false, email:"" };
+  $scope.feedback = {
+    mychannel: "",
+    firstName: "",
+    lastName: "",
+    agree: false,
+    email: ""
+  };
 
-  var channels = [{value:"tel", label:"Tel."}, {value:"Email",label:"Email"}];
+  var channels = [{
+    value: "tel",
+    label: "Tel."
+  }, {
+    value: "Email",
+    label: "Email"
+  }];
 
   $scope.channels = channels;
   $scope.invalidChannelSelection = false;
 
 }])
 
-.controller('FeedbackController', ['$scope', 'feedbackFactory', function($scope,feedbackFactory) {
+.controller('FeedbackController', ['$scope', 'feedbackFactory', function ($scope, feedbackFactory) {
 
-  $scope.sendFeedback = function() {
+  $scope.sendFeedback = function () {
 
+    console.log($scope.feedback);
+
+    if ($scope.feedback.agree && ($scope.feedback.mychannel == "")) {
+      $scope.invalidChannelSelection = true;
+      console.log('incorrect');
+    } else {
+      $scope.invalidChannelSelection = false;
+      feedbackFactory.save($scope.feedback);
+      $scope.feedback = {
+        mychannel: "",
+        firstName: "",
+        lastName: "",
+        agree: false,
+        email: ""
+      };
+      $scope.feedback.mychannel = "";
+      $scope.feedbackForm.$setPristine();
       console.log($scope.feedback);
-
-      if ($scope.feedback.agree && ($scope.feedback.mychannel == "")) {
-          $scope.invalidChannelSelection = true;
-          console.log('incorrect');
-      }
-      else {
-          $scope.invalidChannelSelection = false;
-          feedbackFactory.save($scope.feedback);
-          $scope.feedback = {mychannel:"", firstName:"", lastName:"", agree:false, email:"" };
-          $scope.feedback.mychannel="";
-          $scope.feedbackForm.$setPristine();
-          console.log($scope.feedback);
-      }
+    }
   };
 }])
 
 .controller('DishDetailController', ['$scope', '$stateParams', 'dish', 'menuFactory', 'favoriteFactory', 'baseURL', '$ionicPopover', '$ionicModal', function ($scope, $stateParams, dish, menuFactory, favoriteFactory, baseURL, $ionicPopover, $ionicModal) {
 
-    $scope.baseURL = baseURL;
+  $scope.baseURL = baseURL;
 
-    $scope.dish = dish;
+  $scope.dish = dish;
   $scope.showDish = false;
-  $scope.message="Loading ...";
-  $scope.mycomment = {rating:5, comment:"", author:"", date:""};
+  $scope.message = "Loading ...";
+  $scope.mycomment = {
+    rating: 5,
+    comment: "",
+    author: "",
+    date: ""
+  };
 
 
-  $scope.closeComment = function() {
+  $scope.closeComment = function () {
     $scope.modal.hide();
     $scope.popover.hide();
   };
 
-    $ionicModal.fromTemplateUrl('templates/dish-comment.html', {
-      scope: $scope,
-      animation: 'slide-in-up'
-    }).then(function(modal) {
-      $scope.modal = modal;
-    });
+  $ionicModal.fromTemplateUrl('templates/dish-comment.html', {
+    scope: $scope,
+    animation: 'slide-in-up'
+  }).then(function (modal) {
+    $scope.modal = modal;
+  });
 
-    $ionicPopover.fromTemplateUrl('templates/dish-detail-popover.html', {
-       scope: $scope
-     }).then(function(popover) {
-       $scope.popover = popover;
-     });
+  $ionicPopover.fromTemplateUrl('templates/dish-detail-popover.html', {
+    scope: $scope
+  }).then(function (popover) {
+    $scope.popover = popover;
+  });
 
-  $scope.openPopover = function($event) {
+  $scope.openPopover = function ($event) {
     $scope.popover.show($event);
   };
 
-  $scope.addToFavorites = function() {
+  $scope.addToFavorites = function () {
     console.log(favoriteFactory);
     favoriteFactory.addToFavorites($scope.dish.id);
     $scope.popover.hide();
   };
 
-  $scope.addComment = function() {
+  $scope.addComment = function () {
     $scope.modal.show();
   };
 
   $scope.submitComment = function () {
 
-      $scope.mycomment.date = new Date().toISOString();
+    $scope.mycomment.date = new Date().toISOString();
 
-      $scope.dish.comments.push($scope.mycomment);
-      menuFactory.update({id:$scope.dish.id},$scope.dish);
-      $scope.mycomment = {rating:5, comment:"", author:"", date:""};
-      $scope.modal.hide();
-      $scope.popover.hide();
+    $scope.dish.comments.push($scope.mycomment);
+    menuFactory.update({
+      id: $scope.dish.id
+    }, $scope.dish);
+    $scope.mycomment = {
+      rating: 5,
+      comment: "",
+      author: "",
+      date: ""
+    };
+    $scope.modal.hide();
+    $scope.popover.hide();
   }
 
 }])
 
-.controller('DishCommentController', ['$scope', 'menuFactory', function($scope,menuFactory) {
+.controller('DishCommentController', ['$scope', 'menuFactory', function ($scope, menuFactory) {
 
-  $scope.mycomment = {rating:5, comment:"", author:"", date:""};
+  $scope.mycomment = {
+    rating: 5,
+    comment: "",
+    author: "",
+    date: ""
+  };
 
   $scope.submitComment = function () {
 
-      $scope.mycomment.date = new Date().toISOString();
-      console.log($scope.mycomment);
+    $scope.mycomment.date = new Date().toISOString();
+    console.log($scope.mycomment);
 
-      $scope.dish.comments.push($scope.mycomment);
-menuFactory.update({id:$scope.dish.id},$scope.dish);
+    $scope.dish.comments.push($scope.mycomment);
+    menuFactory.update({
+      id: $scope.dish.id
+    }, $scope.dish);
 
-      $scope.commentForm.$setPristine();
+    $scope.commentForm.$setPristine();
 
-      $scope.mycomment = {rating:5, comment:"", author:"", date:""};
+    $scope.mycomment = {
+      rating: 5,
+      comment: "",
+      author: "",
+      date: ""
+    };
   }
 }])
 
@@ -233,31 +271,31 @@ menuFactory.update({id:$scope.dish.id},$scope.dish);
 
     $scope.baseURL = baseURL;
     $scope.leader = corporateFactory.get({
-        id: 3
+      id: 3
     });
 
     $scope.showDish = false;
     $scope.message = "Loading ...";
 
     $scope.dish = menuFactory.get({
-            id: 0
-        })
-        .$promise.then(
-            function (response) {
-                $scope.dish = response;
-                $scope.showDish = true;
-            },
-            function (response) {
-                $scope.message = "Error: " + response.status + " " + response.statusText;
-            }
-        );
+        id: 0
+      })
+      .$promise.then(
+        function (response) {
+          $scope.dish = response;
+          $scope.showDish = true;
+        },
+        function (response) {
+          $scope.message = "Error: " + response.status + " " + response.statusText;
+        }
+      );
 
     $scope.promotion = promotionFactory.get({
-        id: 0
+      id: 0
     });
 
-}])
-.controller('FavoritesController', ['$scope', 'dishes', 'favorites', 'favoriteFactory', 'baseURL', '$ionicListDelegate', '$ionicPopup', '$ionicLoading', '$timeout', function ($scope, dishes, favorites, favoriteFactory, baseURL, $ionicListDelegate, $ionicPopup, $ionicLoading, $timeout) {
+  }])
+  .controller('FavoritesController', ['$scope', 'dishes', 'favorites', 'favoriteFactory', 'baseURL', '$ionicListDelegate', '$ionicPopup', '$ionicLoading', '$timeout', function ($scope, dishes, favorites, favoriteFactory, baseURL, $ionicListDelegate, $ionicPopup, $ionicLoading, $timeout) {
 
     $scope.baseURL = baseURL;
     $scope.shouldShowDelete = false;
@@ -267,35 +305,35 @@ menuFactory.update({id:$scope.dish.id},$scope.dish);
     $scope.dishes = dishes;
 
     $scope.toggleDelete = function () {
-        $scope.shouldShowDelete = !$scope.shouldShowDelete;
-        console.log($scope.shouldShowDelete);
+      $scope.shouldShowDelete = !$scope.shouldShowDelete;
+      console.log($scope.shouldShowDelete);
     }
 
     $scope.deleteFavorite = function (index) {
 
-        var confirmPopup = $ionicPopup.confirm({
-            title: 'Confirm Delete',
-            template: 'Are you sure you want to delete this item?'
-        });
+      var confirmPopup = $ionicPopup.confirm({
+        title: 'Confirm Delete',
+        template: 'Are you sure you want to delete this item?'
+      });
 
-        confirmPopup.then(function (res) {
-            if (res) {
-                console.log('Ok to delete');
-                favoriteFactory.deleteFromFavorites(index);
-            } else {
-                console.log('Canceled delete');
-            }
-        });
+      confirmPopup.then(function (res) {
+        if (res) {
+          console.log('Ok to delete');
+          favoriteFactory.deleteFromFavorites(index);
+        } else {
+          console.log('Canceled delete');
+        }
+      });
 
-        $scope.shouldShowDelete = false;
+      $scope.shouldShowDelete = false;
 
     };
-}])
+  }])
 
-.controller('AboutController', ['$scope', 'corporateFactory','baseURL', function($scope, corporateFactory, baseURL) {
+.controller('AboutController', ['$scope', 'corporateFactory', 'baseURL', function ($scope, corporateFactory, baseURL) {
 
   $scope.leaders = corporateFactory.query();
-  $scope.baseURL =baseURL;
+  $scope.baseURL = baseURL;
 
 }])
 
@@ -303,11 +341,12 @@ menuFactory.update({id:$scope.dish.id},$scope.dish);
   return function (dishes, favorites) {
     var out = [];
     for (var i = 0; i < favorites.length; i++) {
-        for (var j = 0; j < dishes.length; j++) {
-            if (dishes[j].id === favorites[i].id)
-                out.push(dishes[j]);
-        }
+      for (var j = 0; j < dishes.length; j++) {
+        if (dishes[j].id === favorites[i].id)
+          out.push(dishes[j]);
+      }
     }
     return out;
 
-}});
+  }
+});
