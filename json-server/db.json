@@ -92,6 +92,18 @@
           "comment": "ad",
           "author": "sdd",
           "date": "2017-01-12T18:17:32.037Z"
+        },
+        {
+          "rating": 5,
+          "comment": "",
+          "author": "tyty",
+          "date": "2017-01-13T09:21:53.153Z"
+        },
+        {
+          "rating": "2",
+          "comment": "ddd",
+          "author": "dd",
+          "date": "2017-01-13T09:22:15.923Z"
         }
       ]
     },

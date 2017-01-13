@@ -172,6 +172,11 @@ angular.module('conFusion.controllers', [])
     }
   );
 
+  $scope.closeComment = function() {
+    $scope.modal.hide();
+    $scope.popover.hide();
+  };
+
     $ionicModal.fromTemplateUrl('templates/dish-comment.html', {
       scope: $scope,
       animation: 'slide-in-up'
