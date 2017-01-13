@@ -197,7 +197,6 @@ angular.module('conFusion.controllers', [])
 
   $scope.addComment = function() {
     $scope.modal.show();
-    $scope.popover.hide();
   };
 
   $scope.submitComment = function () {
@@ -208,6 +207,7 @@ angular.module('conFusion.controllers', [])
       menuFactory.getDishes().update({id:$scope.dish.id},$scope.dish);
       $scope.mycomment = {rating:5, comment:"", author:"", date:""};
       $scope.modal.hide();
+      $scope.popover.hide();
   }
 
 }])
