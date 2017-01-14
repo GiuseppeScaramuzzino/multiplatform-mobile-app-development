@@ -5,8 +5,8 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.controllers' is found in controllers.js
 angular.module('conFusion', ['ionic', 'conFusion.controllers', 'conFusion.services'])
-  .run(function($ionicPlatform, $rootScope, $ionicLoading) {
-    $ionicPlatform.ready(function() {
+  .run(function ($ionicPlatform, $rootScope, $ionicLoading) {
+    $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
       if (window.cordova && window.cordova.plugins.Keyboard) {
@@ -20,29 +20,29 @@ angular.module('conFusion', ['ionic', 'conFusion.controllers', 'conFusion.servic
       }
     });
 
-    $rootScope.$on('loading:show', function() {
+    $rootScope.$on('loading:show', function () {
       $ionicLoading.show({
         template: '<ion-spinner></ion-spinner> Loading ...'
       })
     });
 
-    $rootScope.$on('loading:hide', function() {
+    $rootScope.$on('loading:hide', function () {
       $ionicLoading.hide();
     });
 
-    $rootScope.$on('$stateChangeStart', function() {
+    $rootScope.$on('$stateChangeStart', function () {
       console.log('Loading ...');
       $rootScope.$broadcast('loading:show');
     });
 
-    $rootScope.$on('$stateChangeSuccess', function() {
+    $rootScope.$on('$stateChangeSuccess', function () {
       console.log('done');
       $rootScope.$broadcast('loading:hide');
     });
 
   })
 
-.config(function($stateProvider, $urlRouterProvider) {
+.config(function ($stateProvider, $urlRouterProvider) {
   $stateProvider
 
     .state('app', {
@@ -57,7 +57,24 @@ angular.module('conFusion', ['ionic', 'conFusion.controllers', 'conFusion.servic
     views: {
       'mainContent': {
         templateUrl: 'templates/home.html',
-        controller: 'IndexController'
+        controller: 'IndexController',
+        resolve: {
+          dish: ['$stateParams', 'menuFactory', function ($stateParams, menuFactory) {
+            return menuFactory.get({
+              id: 0
+            });
+          }],
+          promotion: ['$stateParams', 'promotionFactory', function ($stateParams, promotionFactory) {
+            return promotionFactory.get({
+              id: 0
+            });
+          }],
+          leader: ['$stateParams', 'corporateFactory', function ($stateParams, corporateFactory) {
+            return corporateFactory.get({
+              id: 3
+            });
+          }]
+        }
       }
     }
   })
@@ -67,7 +84,12 @@ angular.module('conFusion', ['ionic', 'conFusion.controllers', 'conFusion.servic
       views: {
         'mainContent': {
           templateUrl: 'templates/aboutus.html',
-          controller: 'AboutController'
+          controller: 'AboutController',
+          resolve: {
+            leader: ['corporateFactory', function (corporateFactory) {
+              return corporateFactory.query();
+            }]
+          }
         }
       }
     })
@@ -85,7 +107,12 @@ angular.module('conFusion', ['ionic', 'conFusion.controllers', 'conFusion.servic
     views: {
       'mainContent': {
         templateUrl: 'templates/menu.html',
-        controller: 'MenuController'
+        controller: 'MenuController',
+        resolve: {
+          dishes: ['menuFactory', function (menuFactory) {
+            return menuFactory.query();
+          }]
+        }
       }
     }
   })
@@ -97,10 +124,10 @@ angular.module('conFusion', ['ionic', 'conFusion.controllers', 'conFusion.servic
         templateUrl: 'templates/favorites.html',
         controller: 'FavoritesController',
         resolve: {
-          dishes: ['menuFactory', function(menuFactory) {
+          dishes: ['menuFactory', function (menuFactory) {
             return menuFactory.query();
           }],
-          favorites: ['favoriteFactory', function(favoriteFactory) {
+          favorites: ['favoriteFactory', function (favoriteFactory) {
             return favoriteFactory.getFavorites();
           }]
         }
@@ -115,7 +142,7 @@ angular.module('conFusion', ['ionic', 'conFusion.controllers', 'conFusion.servic
         templateUrl: 'templates/dishdetail.html',
         controller: 'DishDetailController',
         resolve: {
-          dish: ['$stateParams', 'menuFactory', function($stateParams, menuFactory) {
+          dish: ['$stateParams', 'menuFactory', function ($stateParams, menuFactory) {
             return menuFactory.get({
               id: parseInt($stateParams.id, 10)
             });
